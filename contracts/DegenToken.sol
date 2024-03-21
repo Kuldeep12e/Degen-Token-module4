@@ -4,18 +4,18 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract DegenToken is ERC20, Ownable {
-    struct GameStoreItem {
+contract GameToken is ERC20, Ownable {
+    struct GameItem {
         string itemName; // New field for item name
         uint256 price;
         uint256 stock;
     }
 
-    mapping(uint256 => GameStoreItem) public gameStoreItems;
+    mapping(uint256 => GameItem) public gameItems;
     uint256 public itemCount;
 
-    constructor() ERC20("DegenToken", "DEGEN") {
-        _mint(msg.sender, 1000); // Initial supply: 1,000
+    constructor(address initialOwner) ERC20("GameToken", "GAME") Ownable(initialOwner) {
+        _mint(initialOwner, 1000); // Initial supply: 1,000
     }
 
     function mintTokens(address recipient, uint256 amount) public onlyOwner {
@@ -41,24 +41,24 @@ contract DegenToken is ERC20, Ownable {
         _burn(msg.sender, amount);
     }
 
-    function addGameStoreItem(string memory itemName, uint256 price, uint256 stock) public onlyOwner {
+    function addItemToStore(string memory itemName, uint256 price, uint256 stock) public onlyOwner {
         require(price > 0, "Price must be greater than 0");
         require(stock > 0, "Stock must be greater than 0");
         itemCount++;
-        gameStoreItems[itemCount] = GameStoreItem(itemName, price, stock);
+        gameItems[itemCount] = GameItem(itemName, price, stock);
     }
 
-    function getGameStoreItems() public view returns (GameStoreItem[] memory) {
-        GameStoreItem[] memory items = new GameStoreItem[](itemCount);
+    function getStoreItems() public view returns (GameItem[] memory) {
+        GameItem[] memory items = new GameItem[](itemCount);
         for (uint256 i = 1; i <= itemCount; i++) {
-            items[i - 1] = gameStoreItems[i];
+            items[i - 1] = gameItems[i];
         }
         return items;
     }
 
-    function redeemGameStoreItem(uint256 itemId) public {
+    function redeemItem(uint256 itemId) public {
         require(itemId > 0 && itemId <= itemCount, "Invalid item ID");
-        GameStoreItem storage item = gameStoreItems[itemId];
+        GameItem storage item = gameItems[itemId];
         require(item.stock > 0, "Item out of stock");
         require(balanceOf(msg.sender) >= item.price, "Insufficient balance");
 
